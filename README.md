@@ -32,7 +32,7 @@ This project is currently unsupported and in an early testing stage. Feedback on
     - [texture_management](./HIP-Basic/texture_management/): Shows the usage of texture memory.
     - [vulkan_interop](./HIP-Basic/vulkan_interop): Showcases how to share resources and computation between HIP and Vulkan.
     - [warp_shuffle](./HIP-Basic/warp_shuffle/): Uses a simple matrix transpose kernel to showcase how to use warp shuffle operations.
-- [Dockerfiles](./Dockerfiles/) hosts Dockerfiles with ready-to-use environments for the various samples. See [Dockerfiles/README.md](/Dockerfiles/README.md) for details.
+- [Dockerfiles](./Dockerfiles/) hosts Dockerfiles with ready-to-use environments for the various samples. See [Dockerfiles/README.md](./Dockerfiles/README.md) for details.
 - [Docs](./Docs/)
     - [CONTRIBUTING.md](./Docs/CONTRIBUTING.md) contains information on how to contribute to the examples.
 - [Libraries](./Libraries/)
