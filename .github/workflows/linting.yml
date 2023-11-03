@@ -1,0 +1,8 @@
+name: Linting
+
+on: [push, pull_request]
+
+jobs:
+  call-workflow-passing-data:
+    name: Documentation
+    uses: RadeonOpenCompute/rocm-docs-core/.github/workflows/linting.yml@develop
