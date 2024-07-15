@@ -1,26 +1,22 @@
 #!/usr/bin/env bash
 
 SOURCE_COMMIT="$1"
-echo "SOURCE_COMMIT: $SOURCE_COMMIT"
 if [ "$#" -gt 0 ]; then
     shift
 fi
 
 # If no source commit is given target the default branch
 if [ "x$SOURCE_COMMIT" = "x" ]; then
-    echo "No source commit provided, determining default branch..."
+    # If remote is not set use the remote of the current branch or fallback to "origin"
     if [ "x$REMOTE" = "x" ]; then
         BRANCH="$(git rev-parse --abbrev-ref HEAD)"
         REMOTE="$(git config --local --get "branch.$BRANCH.remote" || echo 'origin')"
-        echo "BRANCH: $BRANCH, REMOTE: $REMOTE"
     fi
     SOURCE_COMMIT="remotes/$REMOTE/HEAD"
-    echo "SOURCE_COMMIT set to: $SOURCE_COMMIT"
 fi
 
 # Force colored diff output
 DIFF_COLOR_SAVED="$(git config --local --get color.diff)"
-# If remote is not set use the remote of the current branch or fallback to "origin"
 if [ "x$DIFF_COLOR_SAVED" != "x" ]; then
     git config --local --replace-all "color.diff" "always"
 else
@@ -30,7 +26,6 @@ fi
 scratch="$(mktemp -t check-format.XXXXXXXXXX)"
 finish () {
     # Remove temporary file
-    echo "Cleaning up temporary files and restoring git config..."
     rm -rf "$scratch"
     # Restore setting
     if [ "x$DIFF_COLOR_SAVED" != "x" ]; then
@@ -43,30 +38,18 @@ finish () {
 # feature
 trap finish EXIT
 
-CLANG_FORMAT="clang-format"
+GIT_CLANG_FORMAT="${GIT_CLANG_FORMAT:-git-clang-format}"
+"$GIT_CLANG_FORMAT" --style=file --extensions=cc,cp,cpp,c++,cxx,cu,cuh,hh,hpp,hxx,hip,vert,frag --diff "$@" "$SOURCE_COMMIT" > "$scratch"
 
-# Get all staged files with relevant extensions
-FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cc|cp|cpp|c\+\+|cxx|cu|cuh|hh|hpp|hxx|hip|vert|frag)$')
-if [ -z "$FILES" ]; then
-    echo "No files to format."
-    exit 0
-fi
-
-echo "Running $CLANG_FORMAT --style=file -i $FILES"
-$CLANG_FORMAT --style=file -i $FILES
-
-# Check if any files were modified by clang-format
-MODIFIED_FILES=$(git diff --name-only --diff-filter=M $FILES)
-if [ -z "$MODIFIED_FILES" ]; then
-    echo "No formatting changes needed."
-    exit 0
-fi
+# Check for no-ops
+grep '^no modified files to format$\|^clang-format did not modify any files$' \
+    "$scratch" > /dev/null && exit 0
 
 # Dump formatting diff and signal failure
 printf \
 "\033[31m==== FORMATTING VIOLATIONS DETECTED ====\033[0m
-run '\033[33m%s --style=file -i %s\033[0m' to apply these formatting changes\n\n" \
-"$CLANG_FORMAT" "$FILES"
+run '\033[33m%s --style=file %s %s\033[0m' to apply these formating changes\n\n" \
+"$GIT_CLANG_FORMAT" "$*" "$SOURCE_COMMIT"
 
-git diff $FILES
+cat "$scratch"
 exit 1
