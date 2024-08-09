@@ -1,6 +1,17 @@
 name: Ubuntu 22.04
 
 on:
+  workflow_dispatch:
+    inputs:
+      directory:
+        description: 'Which directory of examples to build'
+        required: true
+        default: 'HIP-Basic'
+        type: choice
+        options:
+        - Applications
+        - HIP-Basic
+        - Libraries
   push:
     branches: [ develop, release/** ]
     paths:
@@ -48,6 +59,6 @@ jobs:
           - name: Configure and Build
             shell: bash
             run: |
-              cd HIP-Basic && mkdir build && cd build
+              cd ${{ inputs.directory }} && mkdir build && cd build
               cmake -DGPU_ARCHITECTURES=all -S ..
               cmake --build . -j 4
