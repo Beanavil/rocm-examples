@@ -13,7 +13,6 @@ on:
         - HIP-Basic
         - Libraries
   push:
-    branches: [ develop, release/** ]
     paths:
       - 'HIP-Basic/**'
       - '.github/workflows/**'
